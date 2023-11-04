@@ -74,6 +74,13 @@ in DATABASES control the behavior of the backend:
    result of `DefaultAzureCredential().get_token('https://database.windows.net/.default')`
    can be passed.
 
+- TOKEN_MSI
+
+   String. Access token fetched as a User Managed Identity
+   has access to the database. E.g. when using `azure.identity`, the
+   result of `DefaultAzureCredential().get_token('https://database.windows.net/.default').token`
+   can be passed.
+
 -  AUTOCOMMIT
 
    Boolean. Set this to `False` if you want to disable
