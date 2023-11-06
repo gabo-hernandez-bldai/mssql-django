@@ -330,6 +330,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             cstr_parts['MARS_Connection'] = 'yes'
 
         connstr = encode_connection_string(cstr_parts)
+        connstr_alternative = (
+            f"Driver={{ODBC Driver 18 for SQL Server}};SERVER={cstr_parts['SERVER']};DATABASE={cstr_parts['DATABASE']}"
+        )
 
         # extra_params are glued on the end of the string without encoding,
         # so it's up to the settings writer to make sure they're appropriate -
@@ -358,7 +361,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             }
         while conn is None:
             try:
-                conn = Database.connect(connstr, **args)
+                conn = Database.connect(connstr_alternative, **args)
             except Exception as e:
                 for error_number in self._transient_error_numbers:
                     if error_number in e.args[1]:
