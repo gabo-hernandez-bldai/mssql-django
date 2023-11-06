@@ -73,20 +73,6 @@ def prepare_token_for_odbc(token):
         exptoken += bytes(1)
     return struct.pack("=i", len(exptoken)) + exptoken
 
-def prepare_token_msi_for_odbc(token):
-    """
-    Will prepare a managed identity token for passing it to the odbc driver, 
-    as it expects bytes and not a string
-    :param token:
-    :return: packed binary byte representation of token string
-    """
-    if not isinstance(token, str):
-        raise TypeError("Invalid token format provided.")
-
-    token_encoded = token.encode("UTF-16-LE")
-    return struct.pack(f'<I{len(token_encoded)}s', len(token_encoded), token_encoded)
-
-
 def encode_value(v):
     """If the value contains a semicolon, or starts with a left curly brace,
     then enclose it in curly braces and escape all right curly braces.
@@ -294,9 +280,6 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         host = conn_params.get('HOST', 'localhost')
         user = conn_params.get('USER', None)
         password = conn_params.get('PASSWORD', None)
-        if 'TOKEN_MSI' in conn_params:
-            user = None
-            password = None
         port = conn_params.get('PORT', None)
         trusted_connection = conn_params.get('Trusted_Connection', 'yes')
 
@@ -339,7 +322,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             cstr_parts['UID'] = user
             if 'Authentication=ActiveDirectoryInteractive' not in options_extra_params:
                 cstr_parts['PWD'] = password
-        elif 'TOKEN' not in conn_params and 'TOKEN_MSI' not in conn_params:
+        elif 'TOKEN' not in conn_params:
             if ms_drivers.match(driver) and 'Authentication=ActiveDirectoryMsi' not in options_extra_params:
                 cstr_parts['Trusted_Connection'] = trusted_connection
             else:
@@ -376,10 +359,6 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         if 'TOKEN' in conn_params:
             args['attrs_before'] = {
                 1256: prepare_token_for_odbc(conn_params['TOKEN'])
-            }
-        if 'TOKEN_MSI' in conn_params:
-            args['attrs_before'] = {
-                1256: prepare_token_msi_for_odbc(conn_params['TOKEN_MSI'])
             }
         while conn is None:
             try:
