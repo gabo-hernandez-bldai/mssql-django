@@ -66,12 +66,8 @@ def prepare_token_for_odbc(token):
     if not isinstance(token, str):
         raise TypeError("Invalid token format provided.")
 
-    tokenstr = token.encode()
-    exptoken = b""
-    for i in tokenstr:
-        exptoken += bytes({i})
-        exptoken += bytes(1)
-    return struct.pack("=i", len(exptoken)) + exptoken
+    tokenstr = token.encode("UTF-16-LE")
+    return struct.pack(f'<I{len(tokenstr)}s', len(tokenstr), tokenstr)
 
 def encode_value(v):
     """If the value contains a semicolon, or starts with a left curly brace,
